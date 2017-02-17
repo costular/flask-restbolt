@@ -11,10 +11,10 @@ import flask
 import werkzeug
 from werkzeug.exceptions import HTTPException, Unauthorized, BadRequest, NotFound
 from werkzeug.http import quote_etag, unquote_etag
-from flask_restful.utils import http_status_message, unpack
-import flask_restful
-import flask_restful.fields
-from flask_restful import OrderedDict
+from flask_restbolt.utils import http_status_message, unpack
+import flask_restbolt
+import flask_restbolt.fields
+from flask_restbolt import OrderedDict
 from json import dumps, loads, JSONEncoder
 #noinspection PyUnresolvedReferences
 from nose.tools import assert_equals, assert_true, assert_false  # you need it for tests in form of continuations
@@ -35,7 +35,7 @@ def test_unpack():
 
 
 # Add a dummy Resource to verify that the app is properly set.
-class HelloWorld(flask_restful.Resource):
+class HelloWorld(flask_restbolt.Resource):
     def get(self):
         return {}
 
@@ -48,7 +48,7 @@ class APITestCase(unittest.TestCase):
 
     def test_unauthorized_no_challenge_by_default(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         response = Mock()
         response.headers = {}
         with app.test_request_context('/foo'):
@@ -57,7 +57,7 @@ class APITestCase(unittest.TestCase):
 
     def test_unauthorized(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
         response = Mock()
         response.headers = {}
         with app.test_request_context('/foo'):
@@ -68,7 +68,7 @@ class APITestCase(unittest.TestCase):
     def test_unauthorized_custom_realm(self):
         app = Flask(__name__)
         app.config['HTTP_BASIC_AUTH_REALM'] = 'Foo'
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
         response = Mock()
         response.headers = {}
         with app.test_request_context('/foo'):
@@ -77,7 +77,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_error_401_no_challenge_by_default(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context('/foo'):
             resp = api.handle_error(Unauthorized())
@@ -86,7 +86,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_error_401_sends_challege_default_realm(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
         exception = HTTPException()
         exception.code = 401
         exception.data = {'foo': 'bar'}
@@ -100,7 +100,7 @@ class APITestCase(unittest.TestCase):
     def test_handle_error_401_sends_challege_configured_realm(self):
         app = Flask(__name__)
         app.config['HTTP_BASIC_AUTH_REALM'] = 'test-realm'
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
 
         with app.test_request_context('/foo'):
             resp = api.handle_error(Unauthorized())
@@ -110,7 +110,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_error_does_not_swallow_exceptions(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         exception = BadRequest('x')
 
         with app.test_request_context('/foo'):
@@ -120,137 +120,137 @@ class APITestCase(unittest.TestCase):
 
 
     def test_marshal(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
         marshal_dict = OrderedDict([('foo', 'bar'), ('bat', 'baz')])
-        output = flask_restful.marshal(marshal_dict, fields)
+        output = flask_restbolt.marshal(marshal_dict, fields)
         self.assertEquals(output, {'foo': 'bar'})
 
     def test_marshal_with_envelope(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
         marshal_dict = OrderedDict([('foo', 'bar'), ('bat', 'baz')])
-        output = flask_restful.marshal(marshal_dict, fields, envelope='hey')
+        output = flask_restbolt.marshal(marshal_dict, fields, envelope='hey')
         self.assertEquals(output, {'hey': {'foo': 'bar'}})
 
     def test_marshal_decorator(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
 
-        @flask_restful.marshal_with(fields)
+        @flask_restbolt.marshal_with(fields)
         def try_me():
             return OrderedDict([('foo', 'bar'), ('bat', 'baz')])
         self.assertEquals(try_me(), {'foo': 'bar'})
 
     def test_marshal_decorator_with_envelope(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
 
-        @flask_restful.marshal_with(fields, envelope='hey')
+        @flask_restbolt.marshal_with(fields, envelope='hey')
         def try_me():
             return OrderedDict([('foo', 'bar'), ('bat', 'baz')])
 
         self.assertEquals(try_me(), {'hey': {'foo': 'bar'}})
 
     def test_marshal_decorator_tuple(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
 
-        @flask_restful.marshal_with(fields)
+        @flask_restbolt.marshal_with(fields)
         def try_me():
             return OrderedDict([('foo', 'bar'), ('bat', 'baz')]), 200, {'X-test': 123}
         self.assertEquals(try_me(), ({'foo': 'bar'}, 200, {'X-test': 123}))
 
     def test_marshal_decorator_tuple_with_envelope(self):
-        fields = OrderedDict([('foo', flask_restful.fields.Raw)])
+        fields = OrderedDict([('foo', flask_restbolt.fields.Raw)])
 
-        @flask_restful.marshal_with(fields, envelope='hey')
+        @flask_restbolt.marshal_with(fields, envelope='hey')
         def try_me():
             return OrderedDict([('foo', 'bar'), ('bat', 'baz')]), 200, {'X-test': 123}
 
         self.assertEquals(try_me(), ({'hey': {'foo': 'bar'}}, 200, {'X-test': 123}))
 
     def test_marshal_field_decorator(self):
-        field = flask_restful.fields.Raw
+        field = flask_restbolt.fields.Raw
 
-        @flask_restful.marshal_with_field(field)
+        @flask_restbolt.marshal_with_field(field)
         def try_me():
             return 'foo'
         self.assertEquals(try_me(), 'foo')
 
     def test_marshal_field_decorator_tuple(self):
-        field = flask_restful.fields.Raw
+        field = flask_restbolt.fields.Raw
 
-        @flask_restful.marshal_with_field(field)
+        @flask_restbolt.marshal_with_field(field)
         def try_me():
             return 'foo', 200, {'X-test': 123}
         self.assertEquals(('foo', 200, {'X-test': 123}), try_me())
 
     def test_marshal_field(self):
-        fields = OrderedDict({'foo': flask_restful.fields.Raw()})
+        fields = OrderedDict({'foo': flask_restbolt.fields.Raw()})
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz')])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         self.assertEquals(output, {'foo': 'bar'})
 
     def test_marshal_tuple(self):
-        fields = OrderedDict({'foo': flask_restful.fields.Raw})
+        fields = OrderedDict({'foo': flask_restbolt.fields.Raw})
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz')])
-        output = flask_restful.marshal((marshal_fields,), fields)
+        output = flask_restbolt.marshal((marshal_fields,), fields)
         self.assertEquals(output, [{'foo': 'bar'}])
 
     def test_marshal_tuple_with_envelope(self):
-        fields = OrderedDict({'foo': flask_restful.fields.Raw})
+        fields = OrderedDict({'foo': flask_restbolt.fields.Raw})
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz')])
-        output = flask_restful.marshal((marshal_fields,), fields, envelope='hey')
+        output = flask_restbolt.marshal((marshal_fields,), fields, envelope='hey')
         self.assertEquals(output, {'hey': [{'foo': 'bar'}]})
 
     def test_marshal_nested(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.Nested({
-                'fye': flask_restful.fields.String,
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.Nested({
+                'fye': flask_restbolt.fields.String,
             }))
         ])
 
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', {'fye': 'fum'})])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', OrderedDict([('fye', 'fum')]))])
         self.assertEquals(output, expected)
 
     def test_marshal_nested_with_non_null(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.Nested(
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.Nested(
                 OrderedDict([
-                    ('fye', flask_restful.fields.String),
-                    ('blah', flask_restful.fields.String)
+                    ('fye', flask_restbolt.fields.String),
+                    ('blah', flask_restbolt.fields.String)
                 ]), allow_null=False))
         ])
         marshal_fields = [OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', None)])]
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = [OrderedDict([('foo', 'bar'), ('fee', OrderedDict([('fye', None), ('blah', None)]))])]
         self.assertEquals(output, expected)
 
     def test_marshal_nested_with_null(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.Nested(
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.Nested(
                 OrderedDict([
-                    ('fye', flask_restful.fields.String),
-                    ('blah', flask_restful.fields.String)
+                    ('fye', flask_restbolt.fields.String),
+                    ('blah', flask_restbolt.fields.String)
                 ]), allow_null=True))
         ])
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', None)])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', None)])
         self.assertEquals(output, expected)
 
     def test_allow_null_presents_data(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.Nested(
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.Nested(
                 OrderedDict([
-                    ('fye', flask_restful.fields.String),
-                    ('blah', flask_restful.fields.String)
+                    ('fye', flask_restbolt.fields.String),
+                    ('blah', flask_restbolt.fields.String)
                 ]), allow_null=True))
         ])
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', {'blah': 'cool'})])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', OrderedDict([('fye', None), ('blah', 'cool')]))])
         self.assertEquals(output, expected)
 
@@ -260,70 +260,70 @@ class APITestCase(unittest.TestCase):
             def fee(self):
                 return {'blah': 'cool'}
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.Nested(
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.Nested(
                 OrderedDict([
-                    ('fye', flask_restful.fields.String),
-                    ('blah', flask_restful.fields.String)
+                    ('fye', flask_restbolt.fields.String),
+                    ('blah', flask_restbolt.fields.String)
                 ]), allow_null=True))
         ])
         obj = TestObject()
         obj.foo = 'bar'
         obj.bat = 'baz'
-        output = flask_restful.marshal([obj], fields)
+        output = flask_restbolt.marshal([obj], fields)
         expected = [OrderedDict([('foo', 'bar'), ('fee', OrderedDict([('fye', None), ('blah', 'cool')]))])]
         self.assertEquals(output, expected)
 
     def test_marshal_list(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.List(flask_restful.fields.String))
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.List(flask_restbolt.fields.String))
         ])
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', ['fye', 'fum'])])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', (['fye', 'fum']))])
         self.assertEquals(output, expected)
 
     def test_marshal_list_of_nesteds(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.List(flask_restful.fields.Nested({
-                'fye': flask_restful.fields.String
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.List(flask_restbolt.fields.Nested({
+                'fye': flask_restbolt.fields.String
             })))
         ])
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', {'fye': 'fum'})])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', [OrderedDict([('fye', 'fum')])])])
         self.assertEquals(output, expected)
 
     def test_marshal_list_of_lists(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
-            ('fee', flask_restful.fields.List(flask_restful.fields.List(
-                flask_restful.fields.String)))
+            ('foo', flask_restbolt.fields.Raw),
+            ('fee', flask_restbolt.fields.List(flask_restbolt.fields.List(
+                flask_restbolt.fields.String)))
         ])
         marshal_fields = OrderedDict([('foo', 'bar'), ('bat', 'baz'), ('fee', [['fye'], ['fum']])])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'bar'), ('fee', [['fye'], ['fum']])])
         self.assertEquals(output, expected)
 
     def test_marshal_nested_dict(self):
         fields = OrderedDict([
-            ('foo', flask_restful.fields.Raw),
+            ('foo', flask_restbolt.fields.Raw),
             ('bar', OrderedDict([
-                ('a', flask_restful.fields.Raw),
-                ('b', flask_restful.fields.Raw),
+                ('a', flask_restbolt.fields.Raw),
+                ('b', flask_restbolt.fields.Raw),
             ])),
         ])
         marshal_fields = OrderedDict([('foo', 'foo-val'), ('bar', 'bar-val'), ('bat', 'bat-val'),
                                       ('a', 1), ('b', 2), ('c', 3)])
-        output = flask_restful.marshal(marshal_fields, fields)
+        output = flask_restbolt.marshal(marshal_fields, fields)
         expected = OrderedDict([('foo', 'foo-val'), ('bar', OrderedDict([('a', 1), ('b', 2)]))])
         self.assertEquals(output, expected)
 
     def test_api_representation(self):
         app = Mock()
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         @api.representation('foo')
         def foo():
@@ -334,14 +334,14 @@ class APITestCase(unittest.TestCase):
     def test_api_base(self):
         app = Mock()
         app.configure_mock(**{'record.side_effect': AttributeError})
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         self.assertEquals(api.urls, {})
         self.assertEquals(api.prefix, '')
         self.assertEquals(api.default_mediatype, 'application/json')
 
     def test_api_delayed_initialization(self):
         app = Flask(__name__)
-        api = flask_restful.Api()
+        api = flask_restbolt.Api()
         api.add_resource(HelloWorld, '/', endpoint="hello")
         api.init_app(app)
         with app.test_client() as client:
@@ -350,12 +350,12 @@ class APITestCase(unittest.TestCase):
     def test_api_prefix(self):
         app = Mock()
         app.configure_mock(**{'record.side_effect': AttributeError})
-        api = flask_restful.Api(app, prefix='/foo')
+        api = flask_restbolt.Api(app, prefix='/foo')
         self.assertEquals(api.prefix, '/foo')
 
     def test_handle_server_error(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo"):
             resp = api.handle_error(Exception())
@@ -366,7 +366,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_error_with_code(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
 
         exception = Exception()
         exception.code = "Not an integer"
@@ -379,7 +379,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_auth(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app, serve_challenge_on_401=True)
+        api = flask_restbolt.Api(app, serve_challenge_on_401=True)
 
         with app.test_request_context("/foo"):
             resp = api.handle_error(Unauthorized())
@@ -391,9 +391,9 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_api_error(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Test(flask_restful.Resource):
+        class Test(flask_restbolt.Resource):
             def get(self):
                 flask.abort(404)
 
@@ -408,7 +408,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_non_api_error(self):
         app = Flask(__name__)
-        flask_restful.Api(app)
+        flask_restbolt.Api(app)
         app = app.test_client()
 
         resp = app.get("/foo")
@@ -417,7 +417,7 @@ class APITestCase(unittest.TestCase):
 
     def test_non_api_error_404_catchall(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app, catch_all_404s=True)
+        api = flask_restbolt.Api(app, catch_all_404s=True)
         app = app.test_client()
 
         resp = app.get("/foo")
@@ -429,7 +429,7 @@ class APITestCase(unittest.TestCase):
             print("Can't test signals without signal support")
             return
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         exception = BadRequest()
 
@@ -449,7 +449,7 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_error(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo"):
             resp = api.handle_error(BadRequest())
@@ -460,8 +460,8 @@ class APITestCase(unittest.TestCase):
 
     def test_handle_smart_errors(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
-        view = flask_restful.Resource
+        api = flask_restbolt.Api(app)
+        view = flask_restbolt.Resource
 
         api.add_resource(view, '/foo', endpoint='bor')
         api.add_resource(view, '/fee', endpoint='bir')
@@ -493,7 +493,7 @@ class APITestCase(unittest.TestCase):
         the error_router will call the original flask error handler instead.
         """
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         app.handle_exception = Mock()
         api.handle_error = Mock(side_effect=Exception())
         api._has_fr_route = Mock(return_value=True)
@@ -506,7 +506,7 @@ class APITestCase(unittest.TestCase):
 
     def test_media_types(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo", headers={
             'Accept': 'application/json'
@@ -515,7 +515,7 @@ class APITestCase(unittest.TestCase):
 
     def test_media_types_method(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo", headers={
             'Accept': 'application/xml; q=.5'
@@ -525,7 +525,7 @@ class APITestCase(unittest.TestCase):
 
     def test_media_types_q(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo", headers={
             'Accept': 'application/json; q=1, application/xml; q=.5'
@@ -540,7 +540,7 @@ class APITestCase(unittest.TestCase):
         app = Mock(flask.Flask)
         app.view_functions = {}
         view = Mock()
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.decorators.append(return_zero)
         api.output = Mock()
         api.add_resource(view, '/foo', endpoint='bar')
@@ -552,7 +552,7 @@ class APITestCase(unittest.TestCase):
         app.view_functions = {}
         view = Mock()
 
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.output = Mock()
         api.add_resource(view, '/foo', endpoint='bar')
 
@@ -560,13 +560,13 @@ class APITestCase(unittest.TestCase):
 
     def test_add_two_conflicting_resources_on_same_endpoint(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo1(flask_restful.Resource):
+        class Foo1(flask_restbolt.Resource):
             def get(self):
                 return 'foo1'
 
-        class Foo2(flask_restful.Resource):
+        class Foo2(flask_restbolt.Resource):
             def get(self):
                 return 'foo2'
 
@@ -575,9 +575,9 @@ class APITestCase(unittest.TestCase):
 
     def test_add_the_same_resource_on_same_endpoint(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo1(flask_restful.Resource):
+        class Foo1(flask_restbolt.Resource):
             def get(self):
                 return 'foo1'
 
@@ -593,7 +593,7 @@ class APITestCase(unittest.TestCase):
     def test_add_resource(self):
         app = Mock(flask.Flask)
         app.view_functions = {}
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.output = Mock()
         api.add_resource(views.MethodView, '/foo')
 
@@ -603,11 +603,11 @@ class APITestCase(unittest.TestCase):
     def test_resource_decorator(self):
         app = Mock(flask.Flask)
         app.view_functions = {}
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.output = Mock()
 
         @api.resource('/foo', endpoint='bar')
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             pass
 
         app.add_url_rule.assert_called_with('/foo',
@@ -616,7 +616,7 @@ class APITestCase(unittest.TestCase):
     def test_add_resource_kwargs(self):
         app = Mock(flask.Flask)
         app.view_functions = {}
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.output = Mock()
         api.add_resource(views.MethodView, '/foo', defaults={"bar": "baz"})
 
@@ -626,9 +626,9 @@ class APITestCase(unittest.TestCase):
 
     def test_add_resource_forward_resource_class_parameters(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def __init__(self, *args, **kwargs):
                 self.one = args[0]
                 self.two = kwargs['secret_state']
@@ -650,7 +650,7 @@ class APITestCase(unittest.TestCase):
             return {'foo': 'bar'}
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo"):
             wrapper = api.output(make_empty_response)
@@ -664,7 +664,7 @@ class APITestCase(unittest.TestCase):
             return flask.make_response('')
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context("/foo"):
             wrapper = api.output(make_empty_resposne)
@@ -674,14 +674,14 @@ class APITestCase(unittest.TestCase):
 
     def test_resource(self):
         app = Flask(__name__)
-        resource = flask_restful.Resource()
+        resource = flask_restbolt.Resource()
         resource.get = Mock()
         with app.test_request_context("/foo"):
             resource.dispatch_request()
 
     def test_resource_resp(self):
         app = Flask(__name__)
-        resource = flask_restful.Resource()
+        resource = flask_restbolt.Resource()
         resource.get = Mock()
         with app.test_request_context("/foo"):
             resource.get.return_value = flask.make_response('')
@@ -693,7 +693,7 @@ class APITestCase(unittest.TestCase):
         def text(data, code, headers=None):
             return flask.make_response(six.text_type(data))
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
 
             representations = {
                 'text/plain': text,
@@ -709,43 +709,43 @@ class APITestCase(unittest.TestCase):
 
     def test_resource_error(self):
         app = Flask(__name__)
-        resource = flask_restful.Resource()
+        resource = flask_restbolt.Resource()
         with app.test_request_context("/foo"):
             self.assertRaises(AssertionError, lambda: resource.dispatch_request())
 
     def test_resource_head(self):
         app = Flask(__name__)
-        resource = flask_restful.Resource()
+        resource = flask_restbolt.Resource()
         with app.test_request_context("/foo", method="HEAD"):
             self.assertRaises(AssertionError, lambda: resource.dispatch_request())
 
     def test_abort_data(self):
         try:
-            flask_restful.abort(404, foo='bar')
+            flask_restbolt.abort(404, foo='bar')
             assert False  # We should never get here
         except Exception as e:
             self.assertEquals(e.data, {'foo': 'bar'})
 
     def test_abort_no_data(self):
         try:
-            flask_restful.abort(404)
+            flask_restbolt.abort(404)
             assert False  # We should never get here
         except Exception as e:
             self.assertEquals(False, hasattr(e, "data"))
 
     def test_abort_custom_message(self):
         try:
-            flask_restful.abort(404, message="no user")
+            flask_restbolt.abort(404, message="no user")
             assert False  # We should never get here
         except Exception as e:
             assert_equals(e.data['message'], "no user")
 
     def test_abort_type(self):
-        self.assertRaises(HTTPException, lambda: flask_restful.abort(404))
+        self.assertRaises(HTTPException, lambda: flask_restbolt.abort(404))
 
     def test_endpoints(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(HelloWorld, '/ids/<int:id>', endpoint="hello")
         with app.test_request_context('/foo'):
             self.assertFalse(api._has_fr_route())
@@ -755,7 +755,7 @@ class APITestCase(unittest.TestCase):
 
     def test_url_for(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(HelloWorld, '/ids/<int:id>')
         with app.test_request_context('/foo'):
             self.assertEqual(api.url_for(HelloWorld, id=123), '/ids/123')
@@ -766,7 +766,7 @@ class APITestCase(unittest.TestCase):
         """
         api_bp = Blueprint('api', __name__)
         app = Flask(__name__)
-        api = flask_restful.Api(api_bp)
+        api = flask_restbolt.Api(api_bp)
         api.add_resource(HelloWorld, '/foo/<string:bar>')
         app.register_blueprint(api_bp)
         with app.test_request_context('/foo'):
@@ -774,7 +774,7 @@ class APITestCase(unittest.TestCase):
 
     def test_fr_405(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(HelloWorld, '/ids/<int:id>', endpoint="hello")
         app = app.test_client()
         resp = app.post('/ids/3')
@@ -790,7 +790,7 @@ class APITestCase(unittest.TestCase):
         """Test that HTTPException's headers are extended properly"""
         app = Flask(__name__)
         app.config['DEBUG'] = True
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         class NotModified(HTTPException):
             code = 304
@@ -803,7 +803,7 @@ class APITestCase(unittest.TestCase):
                 """Get a list of headers."""
                 return [('ETag', self.etag)]
 
-        class Foo1(flask_restful.Resource):
+        class Foo1(flask_restbolt.Resource):
             def get(self):
                 flask_abort(304, etag='myETag')
 
@@ -822,7 +822,7 @@ class APITestCase(unittest.TestCase):
         https://github.com/flask-restful/flask-restful/issues/534
         """
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         with app.test_request_context('/'):
             r = api.handle_error(BadRequest())
@@ -832,9 +832,9 @@ class APITestCase(unittest.TestCase):
     def test_will_prettyprint_json_in_debug_mode(self):
         app = Flask(__name__)
         app.config['DEBUG'] = True
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo1(flask_restful.Resource):
+        class Foo1(flask_restbolt.Resource):
             def get(self):
                 return {'foo': 'bar', 'baz': 'asdf'}
 
@@ -864,9 +864,9 @@ class APITestCase(unittest.TestCase):
 
         app = Flask(__name__)
         app.config.from_object(TestConfig)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return {'foo': 'bar', 'baz': 'qux'}
 
@@ -890,9 +890,9 @@ class APITestCase(unittest.TestCase):
 
         app = Flask(__name__)
         app.config.from_object(TestConfig)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Cabbage(flask_restful.Resource):
+        class Cabbage(flask_restbolt.Resource):
             def get(self):
                 return {'frob': object()}
 
@@ -906,9 +906,9 @@ class APITestCase(unittest.TestCase):
 
     def test_json_with_no_settings(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return {'foo': 'bar'}
 
@@ -922,9 +922,9 @@ class APITestCase(unittest.TestCase):
 
     def test_redirect(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class FooResource(flask_restful.Resource):
+        class FooResource(flask_restbolt.Resource):
             def get(self):
                 return redirect('/')
 
@@ -937,12 +937,12 @@ class APITestCase(unittest.TestCase):
 
     def test_json_float_marshalled(self):
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
-        class FooResource(flask_restful.Resource):
-            fields = {'foo': flask_restful.fields.Float}
+        class FooResource(flask_restbolt.Resource):
+            fields = {'foo': flask_restbolt.fields.Float}
             def get(self):
-                return flask_restful.marshal({"foo": 3.0}, self.fields)
+                return flask_restbolt.marshal({"foo": 3.0}, self.fields)
 
         api.add_resource(FooResource, '/api')
 
@@ -963,7 +963,7 @@ class APITestCase(unittest.TestCase):
             pass
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, errors=errors)
+        api = flask_restbolt.Api(app, errors=errors)
 
         exception = FooError()
         exception.code = 400
@@ -975,7 +975,7 @@ class APITestCase(unittest.TestCase):
             self.assertEqual(loads(resp.data.decode('utf8')), {"message": "api is foobar", "status": 418})
 
     def test_calling_owns_endpoint_before_api_init(self):
-        api = flask_restful.Api()
+        api = flask_restbolt.Api()
 
         try:
             api.owns_endpoint('endpoint')
@@ -988,7 +988,7 @@ class APITestCase(unittest.TestCase):
                 return f(*args, **kwargs).upper()
             return upper
 
-        class TestResource(flask_restful.Resource):
+        class TestResource(flask_restbolt.Resource):
             method_decorators = {'get': [upper_deco]}
 
             def get(self):
@@ -1013,7 +1013,7 @@ class APITestCase(unittest.TestCase):
                 return f(*args, **kwargs).upper()
             return upper
 
-        class TestResource(flask_restful.Resource):
+        class TestResource(flask_restbolt.Resource):
             method_decorators = [upper_deco]
 
             def get(self):
@@ -1038,7 +1038,7 @@ class APITestCase(unittest.TestCase):
                 return f(*args, **kwargs).upper()
             return upper
 
-        class TestResource(flask_restful.Resource):
+        class TestResource(flask_restbolt.Resource):
             method_decorators = [upper_deco]
 
             def get(self):

@@ -1,42 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from ordereddict import OrderedDict
+from flask_restbolt.representations.json import output_json
+from flask import make_response as original_flask_make_response
 from __future__ import absolute_import
 import difflib
 from functools import wraps, partial
 import re
 from flask import request, url_for, current_app
-from flask import abort as original_flask_abort
 from flask import make_response as original_flask_make_response
-from flask.views import MethodView
 from flask.signals import got_request_exception
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import HTTPException, MethodNotAllowed, NotFound, NotAcceptable, InternalServerError
-from werkzeug.http import HTTP_STATUS_CODES
 from werkzeug.wrappers import Response as ResponseBase
-from flask_restful.utils import http_status_message, unpack, OrderedDict
-from flask_restful.representations.json import output_json
+from flask_restbolt.utils import http_status_message, unpack, OrderedDict
+from flask_restbolt.representations.json import output_json
 import sys
 from flask.helpers import _endpoint_from_view_func
 from types import MethodType
 import operator
-from collections import Mapping
 
 
-__all__ = ('Api', 'Resource', 'marshal', 'marshal_with', 'marshal_with_field', 'abort')
+__author__ = 'costular'
 
-
-def abort(http_status_code, **kwargs):
-    """Raise a HTTPException for the given http_status_code. Attach any keyword
-    arguments to the exception for later processing.
-    """
-    #noinspection PyUnresolvedReferences
-    try:
-        original_flask_abort(http_status_code)
-    except HTTPException as e:
-        if len(kwargs):
-            e.data = kwargs
-        raise
 
 DEFAULT_REPRESENTATIONS = [('application/json', output_json)]
-
 
 class Api(object):
     """
@@ -167,7 +155,7 @@ class Api(object):
     def _deferred_blueprint_init(self, setup_state):
         """Synchronize prefix between blueprint/api and registration options, then
         perform initialization with setup_state.app :class:`flask.Flask` object.
-        When a :class:`flask_restful.Api` object is initialized with a blueprint,
+        When a :class:`flask_restbolt.Api` object is initialized with a blueprint,
         this method is recorded on the blueprint to be run when the blueprint is later
         registered to a :class:`flask.Flask` object.  This method also monkeypatches
         BlueprintSetupState.add_url_rule with _blueprint_setup_add_url_rule_patch.
@@ -406,8 +394,8 @@ class Api(object):
             self.resources.append((resource, urls, kwargs))
 
     def resource(self, *urls, **kwargs):
-        """Wraps a :class:`~flask_restful.Resource` class, adding it to the
-        api. Parameters are the same as :meth:`~flask_restful.Api.add_resource`.
+        """Wraps a :class:`~flask_restbolt.Resource` class, adding it to the
+        api. Parameters are the same as :meth:`~flask_restbolt.Api.add_resource`.
 
         Example::
 
@@ -560,170 +548,3 @@ class Api(object):
 
             response.headers['WWW-Authenticate'] = challenge
         return response
-
-
-class Resource(MethodView):
-    """
-    Represents an abstract RESTful resource. Concrete resources should
-    extend from this class and expose methods for each supported HTTP
-    method. If a resource is invoked with an unsupported HTTP method,
-    the API will return a response with status 405 Method Not Allowed.
-    Otherwise the appropriate method is called and passed all arguments
-    from the url rule used when adding the resource to an Api instance. See
-    :meth:`~flask_restful.Api.add_resource` for details.
-    """
-    representations = None
-    method_decorators = []
-
-    def dispatch_request(self, *args, **kwargs):
-
-        # Taken from flask
-        #noinspection PyUnresolvedReferences
-        meth = getattr(self, request.method.lower(), None)
-        if meth is None and request.method == 'HEAD':
-            meth = getattr(self, 'get', None)
-        assert meth is not None, 'Unimplemented method %r' % request.method
-
-        if isinstance(self.method_decorators, Mapping):
-            decorators = self.method_decorators.get(request.method.lower(), [])
-        else:
-            decorators = self.method_decorators
-
-        for decorator in decorators:
-            meth = decorator(meth)
-
-        resp = meth(*args, **kwargs)
-
-        if isinstance(resp, ResponseBase):  # There may be a better way to test
-            return resp
-
-        representations = self.representations or OrderedDict()
-
-        #noinspection PyUnresolvedReferences
-        mediatype = request.accept_mimetypes.best_match(representations, default=None)
-        if mediatype in representations:
-            data, code, headers = unpack(resp)
-            resp = representations[mediatype](data, code, headers)
-            resp.headers['Content-Type'] = mediatype
-            return resp
-
-        return resp
-
-
-def marshal(data, fields, envelope=None):
-    """Takes raw data (in the form of a dict, list, object) and a dict of
-    fields to output and filters the data based on those fields.
-
-    :param data: the actual object(s) from which the fields are taken from
-    :param fields: a dict of whose keys will make up the final serialized
-                   response output
-    :param envelope: optional key that will be used to envelop the serialized
-                     response
-
-
-    >>> from flask_restful import fields, marshal
-    >>> data = { 'a': 100, 'b': 'foo' }
-    >>> mfields = { 'a': fields.Raw }
-
-    >>> marshal(data, mfields)
-    OrderedDict([('a', 100)])
-
-    >>> marshal(data, mfields, envelope='data')
-    OrderedDict([('data', OrderedDict([('a', 100)]))])
-
-    """
-
-    def make(cls):
-        if isinstance(cls, type):
-            return cls()
-        return cls
-
-    if isinstance(data, (list, tuple)):
-        return (OrderedDict([(envelope, [marshal(d, fields) for d in data])])
-                if envelope else [marshal(d, fields) for d in data])
-
-    items = ((k, marshal(data, v) if isinstance(v, dict)
-              else make(v).output(k, data))
-             for k, v in fields.items())
-    return OrderedDict([(envelope, OrderedDict(items))]) if envelope else OrderedDict(items)
-
-
-class marshal_with(object):
-    """A decorator that apply marshalling to the return values of your methods.
-
-    >>> from flask_restful import fields, marshal_with
-    >>> mfields = { 'a': fields.Raw }
-    >>> @marshal_with(mfields)
-    ... def get():
-    ...     return { 'a': 100, 'b': 'foo' }
-    ...
-    ...
-    >>> get()
-    OrderedDict([('a', 100)])
-
-    >>> @marshal_with(mfields, envelope='data')
-    ... def get():
-    ...     return { 'a': 100, 'b': 'foo' }
-    ...
-    ...
-    >>> get()
-    OrderedDict([('data', OrderedDict([('a', 100)]))])
-
-    see :meth:`flask_restful.marshal`
-    """
-    def __init__(self, fields, envelope=None):
-        """
-        :param fields: a dict of whose keys will make up the final
-                       serialized response output
-        :param envelope: optional key that will be used to envelop the serialized
-                         response
-        """
-        self.fields = fields
-        self.envelope = envelope
-
-    def __call__(self, f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            resp = f(*args, **kwargs)
-            if isinstance(resp, tuple):
-                data, code, headers = unpack(resp)
-                return marshal(data, self.fields, self.envelope), code, headers
-            else:
-                return marshal(resp, self.fields, self.envelope)
-        return wrapper
-
-
-class marshal_with_field(object):
-    """
-    A decorator that formats the return values of your methods with a single field.
-
-    >>> from flask_restful import marshal_with_field, fields
-    >>> @marshal_with_field(fields.List(fields.Integer))
-    ... def get():
-    ...     return ['1', 2, 3.0]
-    ...
-    >>> get()
-    [1, 2, 3]
-
-    see :meth:`flask_restful.marshal_with`
-    """
-    def __init__(self, field):
-        """
-        :param field: a single field with which to marshal the output.
-        """
-        if isinstance(field, type):
-            self.field = field()
-        else:
-            self.field = field
-
-    def __call__(self, f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            resp = f(*args, **kwargs)
-
-            if isinstance(resp, tuple):
-                data, code, headers = unpack(resp)
-                return self.field.format(data), code, headers
-            return self.field.format(resp)
-
-        return wrapper

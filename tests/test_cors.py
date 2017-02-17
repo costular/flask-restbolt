@@ -1,7 +1,7 @@
 import unittest
 from flask import Flask
-import flask_restful
-from flask_restful.utils import cors
+import flask_restbolt
+from flask_restbolt.utils import cors
 from nose.tools import assert_equals, assert_true
 
 
@@ -9,13 +9,13 @@ class CORSTestCase(unittest.TestCase):
 
     def test_crossdomain(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             @cors.crossdomain(origin='*')
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(Foo, '/')
 
         with app.test_client() as client:
@@ -29,14 +29,14 @@ class CORSTestCase(unittest.TestCase):
 
     def test_access_control_expose_headers(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             @cors.crossdomain(origin='*',
                               expose_headers=['X-My-Header', 'X-Another-Header'])
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(Foo, '/')
 
         with app.test_client() as client:
@@ -47,12 +47,12 @@ class CORSTestCase(unittest.TestCase):
 
     def test_no_crossdomain(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
         api.add_resource(Foo, '/')
 
         with app.test_client() as client:

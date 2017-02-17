@@ -7,7 +7,7 @@ import re
 from nose.tools import assert_equal, assert_raises  # you need it for tests in form of continuations
 import six
 
-from flask_restful import inputs
+from flask_restbolt import inputs
 
 
 def test_reverse_rfc822_datetime():

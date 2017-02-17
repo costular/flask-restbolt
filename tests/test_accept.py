@@ -1,6 +1,6 @@
 import unittest
 from flask import Flask
-import flask_restful
+import flask_restbolt
 from werkzeug import exceptions
 from nose.tools import assert_equals
 
@@ -10,12 +10,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_default_application_json(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         api.add_resource(Foo, '/')
 
@@ -27,12 +27,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_no_default_match_acceptable(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
 
         api.add_resource(Foo, '/')
 
@@ -44,12 +44,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_default_override_accept(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         api.add_resource(Foo, '/')
 
@@ -61,12 +61,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_default_any_pick_first(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app)
+        api = flask_restbolt.Api(app)
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
@@ -83,12 +83,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_no_default_no_match_not_acceptable(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
 
         api.add_resource(Foo, '/')
 
@@ -100,12 +100,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_no_default_custom_repr_match(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
         api.representations = {}
 
         @api.representation('text/plain')
@@ -123,12 +123,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_no_default_custom_repr_not_acceptable(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
         api.representations = {}
 
         @api.representation('text/plain')
@@ -150,12 +150,12 @@ class AcceptTestCase(unittest.TestCase):
         but this depends on werkzeug >= 1.0 which is not yet released
         so this test is expected to fail until we depend on werkzeug >= 1.0
         """
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
 
         api.add_resource(Foo, '/')
 
@@ -165,12 +165,12 @@ class AcceptTestCase(unittest.TestCase):
             assert_equals(res.content_type, 'application/json')
 
     def test_accept_no_default_accept_highest_quality_of_two(self):
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
 
         @api.representation('text/plain')
         def text_rep(data, status_code, headers=None):
@@ -186,12 +186,12 @@ class AcceptTestCase(unittest.TestCase):
 
 
     def test_accept_no_default_accept_highest_quality_of_three(self):
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
 
         @api.representation('text/html')
         @api.representation('text/plain')
@@ -209,12 +209,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_no_default_no_representations(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype=None)
+        api = flask_restbolt.Api(app, default_mediatype=None)
         api.representations = {}
 
         api.add_resource(Foo, '/')
@@ -226,12 +226,12 @@ class AcceptTestCase(unittest.TestCase):
 
     def test_accept_invalid_default_no_representations(self):
 
-        class Foo(flask_restful.Resource):
+        class Foo(flask_restbolt.Resource):
             def get(self):
                 return "data"
 
         app = Flask(__name__)
-        api = flask_restful.Api(app, default_mediatype='nonexistant/mediatype')
+        api = flask_restbolt.Api(app, default_mediatype='nonexistant/mediatype')
         api.representations = {}
 
         api.add_resource(Foo, '/')

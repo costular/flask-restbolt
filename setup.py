@@ -13,15 +13,17 @@ requirements = [
     'six>=1.3.0',
     'pytz',
 ]
+
 if PY26:
     requirements.append('ordereddict')
 
 
 version_file = path.join(
     path.dirname(__file__),
-    'flask_restful',
+    'flask_restbolt',
     '__version__.py'
 )
+
 with open(version_file, 'r') as fp:
     m = re.search(
         r"^__version__ = ['\"]([^'\"]*)['\"]",
@@ -32,14 +34,15 @@ with open(version_file, 'r') as fp:
 
 
 setup(
-    name='Flask-RESTful',
+    name='Flask-RESTbolt',
     version=version,
     license='BSD',
-    url='https://www.github.com/flask-restful/flask-restful/',
-    author='Twilio API Team',
-    author_email='help@twilio.com',
-    description='Simple framework for creating REST APIs',
+    url='https://github.com/costular/flask-restbolt/',
+    author='Costular',
+    author_email='costular@gmail.com',
+    description='Powerful and fast framework for creating REST APIs with Flask',
     packages=find_packages(exclude=['tests']),
+    keywords=['flask rest', 'flask restful', 'restbolt', 'flask restbolt', 'flask api', 'flask api rest'],
     classifiers=[
         'Framework :: Flask',
         'Programming Language :: Python :: 2',
@@ -49,6 +52,8 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: BSD License',
     ],
     zip_safe=False,
@@ -56,7 +61,7 @@ setup(
     platforms='any',
     test_suite = 'nose.collector',
     install_requires=requirements,
-    tests_require=['Flask-RESTful[paging]', 'mock>=0.8', 'blinker'],
+    tests_require=['Flask-RESTbolt[paging]', 'mock>=0.8', 'blinker'],
     # Install these with "pip install -e '.[paging]'" or '.[docs]'
     extras_require={
         'paging': 'pycrypto>=2.6',

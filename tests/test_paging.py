@@ -1,5 +1,5 @@
 import unittest
-from flask_restful.paging import retrieve_next_page
+from flask_restbolt.paging import retrieve_next_page
 
 
 class PagingTestCase(unittest.TestCase):

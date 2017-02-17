@@ -1,13 +1,19 @@
-# Flask-RESTful
+# Flask-RESTbolt
 
-[![Build Status](https://travis-ci.org/flask-restful/flask-restful.svg?branch=master)](http://travis-ci.org/flask-restful/flask-restful)
-[![Coverage Status](http://img.shields.io/coveralls/flask-restful/flask-restful/master.svg)](https://coveralls.io/r/flask-restful/flask-restful)
-[![PyPI Version](http://img.shields.io/pypi/v/Flask-RESTful.svg)](https://pypi.python.org/pypi/Flask-RESTful)
-[![PyPI Downloads](http://img.shields.io/pypi/dm/Flask-RESTful.svg)](https://pypi.python.org/pypi/Flask-RESTful)
+Flask-RESTbolt provides the building blocks for creating a fast and powerful REST API.
 
-Flask-RESTful provides the building blocks for creating a great REST API.
+## Installation
 
-## User Guide
+You can install Flask-RESTbolt with pip:
 
-You'll find the user guide and all documentation [here](https://flask-restful.readthedocs.io/en/latest/)
+or with easy_install
+
+
+## Contributing
+
+You're free to contribute with this project.
+
+## Documentation
+
+The documentation and tutorials are hosted on [Read the docs](http://readthedocs.org/)
 

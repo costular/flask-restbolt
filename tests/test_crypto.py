@@ -1,5 +1,5 @@
 import unittest
-from flask_restful.utils.crypto import encrypt, decrypt
+from flask_restbolt.utils.crypto import encrypt, decrypt
 
 
 class CryptoTestCase(unittest.TestCase):

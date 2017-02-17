@@ -6,19 +6,19 @@ except:
     # python3
     from unittest.mock import Mock
 import flask
-import flask_restful
-import flask_restful.fields
+import flask_restbolt
+import flask_restbolt.fields
 #noinspection PyUnresolvedReferences
 from nose.tools import assert_true, assert_false  # you need it for tests in form of continuations
 
 
 # Add a dummy Resource to verify that the app is properly set.
-class HelloWorld(flask_restful.Resource):
+class HelloWorld(flask_restbolt.Resource):
     def get(self):
         return {}
 
 
-class GoodbyeWorld(flask_restful.Resource):
+class GoodbyeWorld(flask_restbolt.Resource):
     def __init__(self, err):
         self.err = err
 
@@ -30,7 +30,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_api_base(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         app = Flask(__name__)
         app.register_blueprint(blueprint)
         self.assertEquals(api.urls, {})
@@ -39,7 +39,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_api_delayed_initialization(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api()
+        api = flask_restbolt.Api()
         api.init_app(blueprint)
         app = Flask(__name__)
         app.register_blueprint(blueprint)
@@ -47,7 +47,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_add_resource_endpoint(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         view = Mock(**{'as_view.return_value': Mock(__name__='test_view')})
         api.add_resource(view, '/foo', endpoint='bar')
         app = Flask(__name__)
@@ -56,7 +56,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_add_resource_endpoint_after_registration(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         app = Flask(__name__)
         app.register_blueprint(blueprint)
         view = Mock(**{'as_view.return_value': Mock(__name__='test_view')})
@@ -65,7 +65,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_url_with_api_prefix(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint, prefix='/api')
+        api = flask_restbolt.Api(blueprint, prefix='/api')
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint)
@@ -74,7 +74,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_url_with_blueprint_prefix(self):
         blueprint = Blueprint('test', __name__, url_prefix='/bp')
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint)
@@ -83,7 +83,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_url_with_registration_prefix(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint, url_prefix='/reg')
@@ -92,7 +92,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_registration_prefix_overrides_blueprint_prefix(self):
         blueprint = Blueprint('test', __name__, url_prefix='/bp')
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint, url_prefix='/reg')
@@ -101,7 +101,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_url_with_api_and_blueprint_prefix(self):
         blueprint = Blueprint('test', __name__, url_prefix='/bp')
-        api = flask_restful.Api(blueprint, prefix='/api')
+        api = flask_restbolt.Api(blueprint, prefix='/api')
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint)
@@ -110,7 +110,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_url_part_order_aeb(self):
         blueprint = Blueprint('test', __name__, url_prefix='/bp')
-        api = flask_restful.Api(blueprint, prefix='/api', url_part_order='aeb')
+        api = flask_restbolt.Api(blueprint, prefix='/api', url_part_order='aeb')
         api.add_resource(HelloWorld, '/hi', endpoint='hello')
         app = Flask(__name__)
         app.register_blueprint(blueprint)
@@ -119,7 +119,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_error_routing(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld(), '/hi', endpoint="hello")
         api.add_resource(GoodbyeWorld(404), '/bye', endpoint="bye")
         app = Flask(__name__)
@@ -133,12 +133,12 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_non_blueprint_rest_error_routing(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld(), '/hi', endpoint="hello")
         api.add_resource(GoodbyeWorld(404), '/bye', endpoint="bye")
         app = Flask(__name__)
         app.register_blueprint(blueprint, url_prefix='/blueprint')
-        api2 = flask_restful.Api(app)
+        api2 = flask_restbolt.Api(app)
         api2.add_resource(HelloWorld(), '/hi', endpoint="hello")
         api2.add_resource(GoodbyeWorld(404), '/bye', endpoint="bye")
         with app.test_request_context('/hi', method='POST'):
@@ -162,7 +162,7 @@ class APIWithBlueprintTestCase(unittest.TestCase):
 
     def test_non_blueprint_non_rest_error_routing(self):
         blueprint = Blueprint('test', __name__)
-        api = flask_restful.Api(blueprint)
+        api = flask_restbolt.Api(blueprint)
         api.add_resource(HelloWorld(), '/hi', endpoint="hello")
         api.add_resource(GoodbyeWorld(404), '/bye', endpoint="bye")
         app = Flask(__name__)

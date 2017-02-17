@@ -10,7 +10,7 @@ except ImportError:
     # python3
     from urllib.parse import urlparse, urlunparse
 
-from flask_restful import inputs, marshal
+from flask_restbolt import inputs, marshal
 from flask import url_for, request
 
 __all__ = ["String", "FormattedString", "Url", "DateTime", "Float",
@@ -167,7 +167,7 @@ class List(Raw):
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
         error_msg = ("The type of the list elements must be a subclass of "
-                     "flask_restful.fields.Raw")
+                     "flask_restbolt.fields.Raw")
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, Raw):
                 raise MarshallingException(error_msg)

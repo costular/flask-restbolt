@@ -20,7 +20,7 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath('_themes'))
-sys.path.append(os.path.abspath('../flask_restful'))
+sys.path.append(os.path.abspath('../flask_restbolt'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -51,7 +51,7 @@ copyright = u'{}, Kevin Burke, Kyle Conroy, Ryan Horn, Frank Stratton, Guillaume
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-from flask_restful.__version__ import __version__
+from flask_restbolt.__version__ import __version__
 vparts = __version__.split('.')
 # The short X.Y version.
 version = '.'.join(vparts[:2])

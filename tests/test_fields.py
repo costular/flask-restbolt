@@ -3,9 +3,9 @@ from functools import partial
 import pytz
 import unittest
 from mock import Mock
-from flask_restful.fields import MarshallingException
-from flask_restful.utils import OrderedDict
-from flask_restful import fields
+from flask_restbolt.fields import MarshallingException
+from flask_restbolt.utils import OrderedDict
+from flask_restbolt import fields
 from datetime import datetime, timedelta, tzinfo
 from flask import Flask, Blueprint
 #noinspection PyUnresolvedReferences
